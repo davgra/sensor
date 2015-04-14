@@ -63,14 +63,18 @@
   (loop [count 1]
     (Thread/sleep 1000)
     (flush)
-    (if false;(or (= count 5) (= count 15))
+    (if (= (mod 10 count) 0)
       (do
-        (println "sending command")
-        (doseq [c (map int "105;0;2;0;1;\n")]
-          (serial/write-int port c))
+        (println "sending command on")
+        ;(doseq [c (map int "105;0;2;0;1;\n")]
+        ;  (serial/write-int port c))
         ))
-    (if (= count 10)
-      (println @in-string))
+    (if (= (mod 10 (+ 5 count)) 0)
+      (do
+        (println "sending command off")
+        ;(doseq [c (map int "105;0;2;0;1;\n")]
+        ;  (serial/write-int port c))
+        ))
     (recur (inc count))
 
     )
