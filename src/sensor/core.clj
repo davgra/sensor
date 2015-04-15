@@ -24,7 +24,7 @@
   (let [incomming-data (prot/decode-message line)
         outgoing-data (prot/process-incomming-data incomming-data)
         ]
-    (case (:-command outgoing-data)
+    (case (:command outgoing-data)
       :send (do
               (println "sending command")
               (doseq [c (map int (:send outgoing-data))]
@@ -34,7 +34,7 @@
       nil nil
       (println (str "Unknown command: " (:command outgoing-data)))
       )
-    (if (:-print outgoing-data)
+    (if (:print outgoing-data)
       (do
         (pp/pprint incomming-data)
         (pp/pprint outgoing-data)
