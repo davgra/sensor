@@ -18,17 +18,23 @@
   (pp/pprint (prot/decode-message line))
   )
 
+(def database (atom {}))
+
 (defn handle-line [line port]
   (let [incomming-data (prot/decode-message line)
         outgoing-data (prot/process-incomming-data incomming-data)
         ]
-    (pp/pprint incomming-data)
-    (pp/pprint outgoing-data)
-    (if (:command outgoing-data)
+    (case (:command outgoing-data)
+      :send (do
+              (println "sending command")
+              (doseq [c (map int (:send outgoing-data))]
+                (serial/write-int port c)))
+      (println (str "Unknown command: " (:command outgoing-data)))
+      )
+    (if (:error outgoing-data)
       (do
-        (println "sending command")
-        (doseq [c (map int (:command outgoing-data))]
-          (serial/write-int port c))
+        (pp/pprint incomming-data)
+        (pp/pprint outgoing-data)
         ))
     outgoing-data
     ))
@@ -53,6 +59,7 @@
   (fn [byte]
     (handle-byte byte port)))
 
+
 (defn -main [& args]
   (let [ports (map #(.getName %) (serial/list-ports))
         port (first (filter #(re-find #"/dev/ttyU" %) pids))]
@@ -63,18 +70,18 @@
   (loop [count 1]
     (Thread/sleep 1000)
     (flush)
-    (if (= (mod 10 count) 0)
-      (do
-        (println "sending command on")
-        ;(doseq [c (map int "105;0;2;0;1;\n")]
-        ;  (serial/write-int port c))
-        ))
-    (if (= (mod 10 (+ 5 count)) 0)
-      (do
-        (println "sending command off")
-        ;(doseq [c (map int "105;0;2;0;1;\n")]
-        ;  (serial/write-int port c))
-        ))
+;;     (if (= (mod 10 count) 0)
+;;       (do
+;;         (println "sending command on")
+;;         ;(doseq [c (map int "105;0;2;0;1;\n")]
+;;         ;  (serial/write-int port c))
+;;         ))
+;;     (if (= (mod 10 (+ 5 count)) 0)
+;;       (do
+;;         (println "sending command off")
+;;         ;(doseq [c (map int "105;0;2;0;1;\n")]
+;;         ;  (serial/write-int port c))
+;;         ))
     (recur (inc count))
 
     )

@@ -123,25 +123,49 @@
                      :ID_RESPONSE   4})
 
 (defn send-command-with-message-type [altid messageType ack variableId value]
-  {:command (str altid ";" (msgType messageType) ";" ack ";" variableId ";" value "\n")}
+  {:command {:altid altid
+             :msg-type (msgType messageType)
+             :ack ack
+             :varId variableId
+             :value value }}
+  {:command :send
+   :send (str altid ";" (msgType messageType) ";" ack ";" variableId ";" value "\n")}
   )
 
 (defn send-internal-command [alt-id variable-id value]
   (send-command-with-message-type alt-id "INTERNAL" 0 (tInternalTypes variable-id "error: send-internal-command") value ))
 
+(defn altid [data]
+  (str (:node-id data) ";" (:child-sensor-id data))
+  )
+
 (defn process-internal-message [data]
-  (let [next-id 3
-        alt-id (str (:node-id data) ";" (:child-sensor-id data))]
+  (let [next-id 1
+        alt-id (altid data)]
     (case (:subtype data)
       :I_ID_REQUEST (send-internal-command alt-id :ID_RESPONSE next-id)
-      {:print (str "Recivre error: no handler :subtype " (:subtype data))}
+      {:print (str "error: Internal, no handler :subtype " (:subtype data))}
       ))
   )
 
+(defn process-set-message [data]
+  {:command :set
+   :set {:sensor (altid data)
+         :value {(:subtype data) (:payload data)}}}
+  )
 
 (defn process-incomming-data [data]
   (case (:message-type data)
     :internal (process-internal-message data)
+    :set (process-set-message data)
     {:print (str "Recive error: no handler message-type: " (:message-type data))}
     ))
+
+(let [data "105;0;1;0;1;35.0\n"
+      deco (decode-message data)
+      outp (process-incomming-data deco)
+      ]
+  [deco outp]
+  )
+
 

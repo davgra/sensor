@@ -51,7 +51,8 @@
 (deftest test5
   (testing "process ID_REQUEST"
     (is (= (process-incomming-data (decode-message "255;255;3;0;3;\n"))
-           {:command "255;255;3;0;4;3\n"}))))
+           {:command :send
+            :send "255;255;3;0;4;1\n"}))))
 
 
 ;(run-all-tests)
