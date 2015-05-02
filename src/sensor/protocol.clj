@@ -139,33 +139,52 @@
   (str (:node-id data) ";" (:child-sensor-id data))
   )
 
+(defn default-log [data]
+  {:log (str (:node-id data) " "
+             (:subtype data) " "
+             (:payload data))})
+
 (defn process-internal-message [data]
-  (let [next-id 1
+  (let [next-id 2
         alt-id (altid data)]
     (case (:subtype data)
       :I_ID_REQUEST (send-internal-command alt-id :ID_RESPONSE next-id)
+      :I_GATEWAY_READY {:log (:payload data)}
+      :I_LOG_MESSAGE {:log (:payload data)}
+      :I_CONFIG (default-log data)
+      :I_SKETCH_NAME (default-log data)
+      :I_SKETCH_VERSION (default-log data)
+
       {:print (str "error: Internal, no handler :subtype " (:subtype data))}
       ))
   )
 
 (defn process-set-message [data]
-  {:command :set
+  {:log (str (:node-id data) "-"
+             (:child-sensor-id data) " "
+             (:subtype data) " "
+             (:payload data))
+   :command :set
    :set {:sensor (altid data)
          :value {(:subtype data) (:payload data)}}}
   )
+
+(defn process-presentation [data]
+  (if (= (:child-sensor-id data) 255)
+    (default-log data)
+    {:log (str (:node-id data) "-"
+               (:child-sensor-id data) " "
+               (:subtype data) " "
+               (:payload data))}))
 
 (defn process-incomming-data [data]
   (case (:message-type data)
     :internal (process-internal-message data)
     :set (process-set-message data)
+    :presentation (process-presentation data)
     {:print (str "Recive error: no handler message-type: " (:message-type data))}
     ))
 
-(let [data "105;0;1;0;1;35.0\n"
-      deco (decode-message data)
-      outp (process-incomming-data deco)
-      ]
-  [deco outp]
-  )
+
 
 
