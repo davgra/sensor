@@ -4,6 +4,8 @@ A Clojure library designed to ... well, that part is up to you.
 
 ## Usage
 
+start with `lein ring server`
+
 FIXME
 
 ## License

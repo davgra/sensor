@@ -1,13 +1,15 @@
 (ns sensor.core
   (:require [serial-port :as serial]
             [sensor.protocol :as prot]
-            [clojure.pprint :as pp])
-  ;(:use serial-port)
+            [clojure.pprint :as pp]
+            [compojure.core :refer :all]
+            [compojure.route :as route]
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]])
   )
 
 (def arduino-filter #"/dev/tty[UA]")
 
-(System/setProperty "gnu.io.rxtx.SerialPorts" "/dev/ttyACM0")
+;; (System/setProperty "gnu.io.rxtx.SerialPorts" "/dev/ttyACM0")
 ;; (System/setProperty "gnu.io.rxtx.SerialPorts" "/dev/ttyACM1")
 
 (def pids (map #(.getName %) (serial/port-ids)))
@@ -59,8 +61,8 @@
 (def in-string (atom ""))
 
 (defn handle-byte [byte port]
-;;   (print (char byte))
-;;   (flush)
+  (print (char byte))
+  (flush)
   (if (= (char byte) \newline)
     (do
       (handle-line @in-string port)
@@ -96,34 +98,38 @@
       )
   )
 
-
-(defn -main [& args]
+(def setup
   (let [ports (map #(.getName %) (serial/list-ports))
-        port (first (filter #(re-find arduino-filter %) pids))]
-    (println port)
-    (def port (serial/open port 115200)))
-  (serial/on-byte port (handle-byte-port port))
+        portpath (first (filter #(re-find arduino-filter %) pids))
+        port (serial/open portpath 115200)
+        ]
+    (println portpath)
+    (serial/on-byte port (handle-byte-port port))
+    {:port port
+     :portpath portpath}
+    ))
 
-  (loop [count 1]
-;;     (Thread/sleep 1000)
-    (flush)
-    (let [line (read-line)]
-;;       (println line)
-      (hande-user-input line port count))
-    ;;     (if (= (mod 10 count) 0)
-    ;;       (do
-    ;;         (println "sending command on")
-    ;;         ;(doseq [c (map int "105;0;2;0;1;\n")]
-    ;;         ;  (serial/write-int port c))
-    ;;         ))
-    ;;     (if (= (mod 10 (+ 5 count)) 0)
-    ;;       (do
-    ;;         (println "sending command off")
-    ;;         ;(doseq [c (map int "105;0;2;0;1;\n")]
-    ;;         ;  (serial/write-int port c))
-
-    (recur (inc count))
-
-    )
+(defn robot [args setup]
+  (case  (:command args)
+    "forward" (do
+                println "frammåt!"
+                (doseq [c (map int "105;11;1;0;2;1\n")]
+                  (serial/write-int (:port setup) c))
+                )
+    "stop" (do
+             println "stop"
+             (doseq [c (map int "105;11;1;0;2;0\n")]
+               (serial/write-int (:port setup) c))
+))
+  (println (:command args))
+  (println (:portpath setup))
+  (str "console.log('recived:" (:command args) "')")
   )
 
+(defroutes app-routes
+  (GET "/" [] "Hello World!")
+  (GET "/robot" [& more] (robot more setup))
+  (route/not-found "Not Found"))
+
+(def app
+  (wrap-defaults app-routes site-defaults))
