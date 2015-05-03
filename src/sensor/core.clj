@@ -75,61 +75,66 @@
   (fn [byte]
     (handle-byte byte port)))
 
+(defn irrigation [args setup]
+  (let [port (:port setup)
+        commands [
+                  "105;10;1;0;3;58\n"
+                  "105;11;1;0;2;1\n"
+                  "105;11;1;0;2;0\n"
+                  "105;10;1;0;3;118\n"
+                  "105;11;1;0;2;1\n"
+                  "105;11;1;0;2;0\n"
 
-(defn- hande-user-input [line port cnt]
-    (let [
-          commands [
-                    "105;10;1;0;3;58\n"
-                    "105;11;1;0;2;1\n"
-                    "105;11;1;0;2;0\n"
-                    "105;10;1;0;3;118\n"
-                    "105;11;1;0;2;1\n"
-                    "105;11;1;0;2;0\n"
-
-;;                     "1;1;1;0;2;1\n"
-;;                     "1;1;1;0;2;0\n"
-                     ]
-          i (mod cnt (count commands))
-          ]
-        (println "sending command")
-        (pp/pprint (prot/decode-message (nth commands i)))
-        (doseq [c (map int (nth commands i))]
-          (serial/write-int port c))
+;;                   "1;1;1;0;2;1\n"
+;;                   "1;1;1;0;2;0\n"
+                  ]]
+    (case  (:command args)
+      "pump" (send-command "105;11;1;0;2;1\n" port)
+      "stop" (send-command "105;11;1;0;2;0\n" port)
+      "1" (send-command "105;10;1;0;3;58\n" port)
+      "2" (send-command "105;10;1;0;3;118\n" port)
       )
-  )
-
-(def setup
-  (let [ports (map #(.getName %) (serial/list-ports))
-        portpath (first (filter #(re-find arduino-filter %) pids))
-        port (serial/open portpath 115200)
-        ]
-    (println portpath)
-    (serial/on-byte port (handle-byte-port port))
-    {:port port
-     :portpath portpath}
-    ))
+    (str "console.log('recived: " (:command args) "')")))
 
 (defn robot [args setup]
   (case  (:command args)
     "forward" (do
-                println "frammåt!"
+                (println "frammåt!")
                 (doseq [c (map int "105;11;1;0;2;1\n")]
                   (serial/write-int (:port setup) c))
                 )
     "stop" (do
-             println "stop"
+             (println "stop")
              (doseq [c (map int "105;11;1;0;2;0\n")]
                (serial/write-int (:port setup) c))
-))
-  (println (:command args))
-  (println (:portpath setup))
+             )
+    (println (str "unknown robot command: " (:command args))))
   (str "console.log('recived:" (:command args) "')")
   )
+
+(def setup (or setup {}))
 
 (defroutes app-routes
   (GET "/" [] "Hello World!")
   (GET "/robot" [& more] (robot more setup))
+  (GET "/irrigation" [& more] (irrigation more setup))
   (route/not-found "Not Found"))
 
 (def app
   (wrap-defaults app-routes site-defaults))
+
+(defn init []
+  (println "init")
+  (def setup
+    (let [ports (map #(.getName %) (serial/list-ports))
+          portpath (first (filter #(re-find arduino-filter %) pids))
+          port (serial/open portpath 115200)
+          ]
+      (println portpath)
+      (serial/on-byte port (handle-byte-port port))
+      {:port port
+       :portpath portpath})))
+
+(defn destroy []
+  (println "destroy")
+  (serial/close (:port setup)))

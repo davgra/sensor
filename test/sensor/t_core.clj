@@ -197,7 +197,7 @@
 
       (process-incomming-data (decode-message "255;255;3;0;3;\n"))
       => {:command :send
-          :send "255;255;3;0;4;1\n"})
+          :send "255;255;3;0;4;2\n"})
 
 
 ;(run-all-test
