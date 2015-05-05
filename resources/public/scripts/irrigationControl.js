@@ -16,3 +16,21 @@ $("#button2").click(function(){
     dataType: "script"
   });
 });
+
+$("#pump1").click(function(){
+  console.log("stop.");
+  $.ajax({
+    method: "GET",
+    url: "/irrigation?command=1",
+    dataType: "script"
+  });
+});
+
+$("#pump2").click(function(){
+  console.log("stop.");
+  $.ajax({
+    method: "GET",
+    url: "/irrigation?command=2",
+    dataType: "script"
+  });
+});

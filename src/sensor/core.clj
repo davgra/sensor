@@ -85,8 +85,8 @@
                   "105;11;1;0;2;1\n"
                   "105;11;1;0;2;0\n"
 
-;;                   "1;1;1;0;2;1\n"
-;;                   "1;1;1;0;2;0\n"
+                  ;;                   "1;1;1;0;2;1\n"
+                  ;;                   "1;1;1;0;2;0\n"
                   ]]
     (case  (:command args)
       "pump" (send-command "105;11;1;0;2;1\n" port)
@@ -97,20 +97,37 @@
     (str "console.log('recived: " (:command args) "')")))
 
 (defn robot [args setup]
-  (case  (:command args)
-    "forward" (do
-                (println "frammåt!")
-                (doseq [c (map int "105;11;1;0;2;1\n")]
-                  (serial/write-int (:port setup) c))
+  (let [port (:port setup)
+        speed (or (:speed args) 150)]
+    (case  (:command args)
+      "tanksteer" (let [left (:left args)
+                        right (:right args)]
+                    (send-command (str "1;1;1;0;3;" left "\n") port)
+                    (send-command (str "1;2;1;0;3;" right "\n") port)
+                    )
+      "forward" (do
+                  (send-command (str "1;1;1;0;3;" speed "\n") port)
+                  (send-command (str "1;2;1;0;3;" speed "\n") port)
+                  )
+      "reverse" (do
+                  (send-command "1;1;1;0;3;-150\n" port)
+                  (send-command "1;2;1;0;3;-150\n" port)
+                  )
+      "left" (do
+               (send-command "1;2;1;0;3;-150\n" port)
+               (send-command "1;1;1;0;3;150\n" port)
+               )
+      "right" (do
+                (send-command "1;2;1;0;3;150\n" port)
+                (send-command "1;1;1;0;3;-150\n" port)
                 )
-    "stop" (do
-             (println "stop")
-             (doseq [c (map int "105;11;1;0;2;0\n")]
-               (serial/write-int (:port setup) c))
-             )
-    (println (str "unknown robot command: " (:command args))))
-  (str "console.log('recived:" (:command args) "')")
-  )
+      "stop" (do
+               (send-command "1;1;1;0;3;0\n" port)
+               (send-command "1;2;1;0;3;0\n" port))
+      (println (str "unknown robot command: " (:command args))))
+
+    (str "console.log('recived:" args "')")
+    ))
 
 (def setup (or setup {}))
 
@@ -126,14 +143,16 @@
 (defn init []
   (println "init")
   (def setup
-    (let [ports (map #(.getName %) (serial/list-ports))
-          portpath (first (filter #(re-find arduino-filter %) pids))
-          port (serial/open portpath 115200)
-          ]
-      (println portpath)
-      (serial/on-byte port (handle-byte-port port))
-      {:port port
-       :portpath portpath})))
+    (if (:port setup)
+      setup
+      (let [ports (map #(.getName %) (serial/list-ports))
+            portpath (first (filter #(re-find arduino-filter %) pids))
+            port (serial/open portpath 115200)
+            ]
+        (println portpath)
+        (serial/on-byte port (handle-byte-port port))
+        {:port port
+         :portpath portpath}))))
 
 (defn destroy []
   (println "destroy")
