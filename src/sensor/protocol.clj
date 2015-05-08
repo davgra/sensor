@@ -123,11 +123,11 @@
                      :ID_RESPONSE   4})
 
 (defn send-command-with-message-type [altid messageType ack variableId value]
-  {:command {:altid altid
-             :msg-type (msgType messageType)
-             :ack ack
-             :varId variableId
-             :value value }}
+;;   {:command {:altid altid
+;;              :msg-type (msgType messageType)
+;;              :ack ack
+;;              :varId variableId
+;;              :value value }}
   {:command :send
    :send (str altid ";" (msgType messageType) ";" ack ";" variableId ";" value "\n")}
   )
@@ -145,7 +145,7 @@
              (:payload data))})
 
 (defn process-internal-message [data]
-  (let [next-id 2
+  (let [next-id 4
         alt-id (altid data)]
     (case (:subtype data)
       :I_ID_REQUEST (send-internal-command alt-id :ID_RESPONSE next-id)
@@ -182,6 +182,8 @@
     :internal (process-internal-message data)
     :set (process-set-message data)
     :presentation (process-presentation data)
+    :req ({:command :send
+           :send (str (altid data) ";" (msgType "SET") ";0;18;0" )})
     {:print (str "Recive error: no handler message-type: " (:message-type data))}
     ))
 

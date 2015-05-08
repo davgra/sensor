@@ -1,56 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Arduino Robot</title>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title>Arduino Irrigation</title>
 
-    <!-- Bootstrap -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <link rel="stylesheet" href="styles/style.css"/>
-    <script type='text/javascript' id='lt_ws' src='http://localhost:35702/socket.io/lighttable/ws.js'></script>
-<body>
-<nav class="navbar navbar-inverse navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                    aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="#">Arduino Robot</a>
+        <!-- Bootstrap -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+        <link rel="stylesheet" href="styles/style.css"/>
+        <script type='text/javascript' id='lt_ws' src='http://localhost:32893/socket.io/lighttable/ws.js'></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-inverse navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="irrigation.html">Irrigation</a>
+                    <a class="navbar-brand" href="robot.html">Robot</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="row">
+                <button id="button1" class="btn btn-primary">Pump på</button>
+                <button id="button2" class="btn btn-success">Pump av</button>
+
+                <div class="btn-group btn-group-lg">
+                    <button id="pump1" class="btn btn-info">1</button>
+                    <button id="pump2" class="btn btn-info">2</button>
+                    <button id="pump3" class="btn btn-info">3</button>
+                    <button id="pump4" class="btn btn-info">4</button>
+                    <button id="pump5" class="btn btn-info">5</button>
+                </div>
+            </div>
+            <div class="row">
+                .
+            </div>
+            <div class="row">
+                <div class="col-xs-2">
+                    Pump nr.
+                </div>
+                <div class="col-xs-3">
+                    Tidpunkt
+                </div>
+                <div class="col-xs-3">
+                    Mängd/dl
+                </div>
+                <div class="col-xs-2">
+                    Tid/s
+                </div>
+            </div>
+            <div class="row pumps">
+                <div class="form-group col-xs-2">
+                    <input type="text" class="form-control" value="1">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="10:00">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="0.9">
+                </div>
+                <div class="col-xs-1">50</div>
+                <button class="btn">Vattna</button>
+            </div>
+            <div class="row pumps">
+                <div class="form-group col-xs-2">
+                    <input type="text" class="form-control" value="2">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="10:00">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="0.9">
+                </div>
+                <div class="col-xs-1">50</div>
+                <button class="btn">Vattna</button>
+            </div>
+            <div class="row pumps">
+                <div class="form-group col-xs-2">
+                    <input type="text" class="form-control" value="3">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="10:00">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="0.9">
+                </div>
+                <div class="col-xs-1">50</div>
+                <button class="btn">Vattna</button>
+            </div>
+            <div class="row pumps">
+                <div class="form-group col-xs-2">
+                    <input type="text" class="form-control" value="4">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="10:00">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="0.9">
+                </div>
+                <div class="col-xs-1">50</div>
+                <button class="btn">Vattna</button>
+            </div>
+            <div class="row pumps">
+                <div class="form-group col-xs-2">
+                    <input type="text" class="form-control" value="5">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="10:00">
+                </div>
+                <div class="form-group col-xs-3">
+                    <input type="text" class="form-control" value="0.9">
+                </div>
+                <div class="col-xs-1">50</div>
+                <button class="btn">Vattna</button>
+            </div>
+
         </div>
-    </div>
-</nav>
+        <!-- /.container -->
 
-<div class="container">
-
-    <div id="button1" style="background-color: lightblue;
-                             height:75px;
-                             width: 75px;">Pump på</div>
-    <div id="button2" style="background-color: lightgreen;
-                             height:75px;
-                             width: 75px;">Pump av</div>
-    <div id="pump1" style="background-color: lightgreen;
-                             height:50px;
-                             width: 50px;
-                             padding: 10px;
-                             border-style: solid;">1</div>
-    <div id="pump2" style="background-color: lightgreen;
-                             height:50px;
-                             width: 50px;
-                             padding: 10px;
-                             border-style: solid;">2</div>
-
-</div>
-<!-- /.container -->
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="scripts/irrigationControl.js"></script>
-</body>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+        <script src="scripts/irrigationControl.js"></script>
+    </body>
 </html>

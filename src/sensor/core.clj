@@ -1,23 +1,37 @@
 (ns sensor.core
-  (:require [serial-port :as serial]
+  (:require [serial.core :as serial]
+            ;;             [serial.util :as s-util]
+            ;;             [serial-port :as serial]
             [sensor.protocol :as prot]
             [clojure.pprint :as pp]
             [compojure.core :refer :all]
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]])
+  (:import
+   (java.io InputStream))
   )
 
-(def arduino-filter #"/dev/tty[UA]")
+(defn on-byte
+  "Calls handler for each byte received"
+  ([port handler] (on-byte port handler true))
+  ([port handler skip-buffered?]
+   (serial/listen port (fn [^InputStream in-stream]
+                         (handler (.read in-stream)))
+                  skip-buffered?)))
+
+(def arduino-filter #"tty[UA]")
 
 ;; (System/setProperty "gnu.io.rxtx.SerialPorts" "/dev/ttyACM0")
 ;; (System/setProperty "gnu.io.rxtx.SerialPorts" "/dev/ttyACM1")
 
+
+;; (s-util/list-ports)
 (def pids (map #(.getName %) (serial/port-ids)))
-(filter #(re-find arduino-filter %) pids)
+;; (filter #(re-find arduino-filter %) pids)
 
 (println pids)
 
-(count pids)
+;; (count pids)
 ;(serial/port-at 0)
 ;(serial/port-at 1)
 (defn handle-line-old [line]
@@ -29,7 +43,7 @@
 
 (defn send-command [command port]
   (doseq [c (map int command)]
-    (serial/write-int port c)))
+    (serial/write port c)))
 
 (defn handle-line [line port]
   (let [incomming-data (prot/decode-message line)
@@ -39,7 +53,7 @@
       :send (do
               (println "sending command")
               (doseq [c (map int (:send outgoing-data))]
-                (serial/write-int port c)))
+                (serial/write port c)))
       :set (do
              (pp/pprint (:set outgoing-data)))
       nil nil
@@ -91,8 +105,11 @@
     (case  (:command args)
       "pump" (send-command "105;11;1;0;2;1\n" port)
       "stop" (send-command "105;11;1;0;2;0\n" port)
-      "1" (send-command "105;10;1;0;3;58\n" port)
-      "2" (send-command "105;10;1;0;3;118\n" port)
+      "1" (send-command "105;10;1;0;3;12\n" port)
+      "2" (send-command "105;10;1;0;3;45\n" port)
+      "3" (send-command "105;10;1;0;3;75\n" port)
+      "4" (send-command "105;10;1;0;3;105\n" port)
+      "5" (send-command "105;10;1;0;3;135\n" port)
       )
     (str "console.log('recived: " (:command args) "')")))
 
@@ -145,12 +162,13 @@
   (def setup
     (if (:port setup)
       setup
-      (let [ports (map #(.getName %) (serial/list-ports))
+      (let [;ports (map #(.getName %) (s-util/list-ports))
             portpath (first (filter #(re-find arduino-filter %) pids))
-            port (serial/open portpath 115200)
+;;             portpath "ttyUSB0"
+            port (serial/open portpath :baud-rate 115200)
             ]
         (println portpath)
-        (serial/on-byte port (handle-byte-port port))
+        (on-byte port (handle-byte-port port))
         {:port port
          :portpath portpath}))))
 
